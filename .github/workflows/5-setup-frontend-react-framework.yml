@@ -1,4 +1,4 @@
-name: Step 5 # Setup the React presentation tier
+name: Step 5
 
 on:
   push:
