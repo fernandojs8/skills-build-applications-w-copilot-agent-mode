@@ -47,8 +47,11 @@ export async function fetchApi(path) {
   return response.json()
 }
 
-export async function fetchCollection(path, collectionKey) {
-  const response = await fetchApi(path)
+export async function fetchCollection(pathOrComponentName, collectionKey = pathOrComponentName) {
+  const endpoint = /^https?:\/\//i.test(pathOrComponentName) || pathOrComponentName.startsWith('/api/')
+    ? pathOrComponentName
+    : componentEndpoint(pathOrComponentName)
+  const response = await fetchApi(endpoint)
 
   return normalizeCollection(response, collectionKey)
 }
