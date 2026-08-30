@@ -1,121 +1,84 @@
-import { useState } from 'react'
-import heroImg from './assets/hero.png'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
+import { useEffect, useState } from 'react'
+import { API_BASE_URL, fetchApi } from './api.js'
 import './App.css'
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [users, setUsers] = useState([])
+  const [activities, setActivities] = useState([])
+  const [status, setStatus] = useState('loading')
+
+  useEffect(() => {
+    let ignore = false
+
+    async function loadDashboard() {
+      try {
+        const [usersResponse, activitiesResponse] = await Promise.all([
+          fetchApi('/api/users'),
+          fetchApi('/api/activities'),
+        ])
+
+        if (!ignore) {
+          setUsers(usersResponse)
+          setActivities(activitiesResponse)
+          setStatus('ready')
+        }
+      } catch (error) {
+        console.error(error)
+
+        if (!ignore) {
+          setStatus('error')
+        }
+      }
+    }
+
+    loadDashboard()
+
+    return () => {
+      ignore = true
+    }
+  }, [])
 
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.jsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
+    <main className="app-shell">
+      <section className="hero-panel">
+        <p className="eyebrow">OctoFit Tracker</p>
+        <h1>Team fitness, live from the API.</h1>
+        <p className="hero-copy">
+          Connected to <code>{API_BASE_URL}</code>
+        </p>
       </section>
 
-      <div className="ticks"></div>
-
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
+      <section className="status-strip" aria-live="polite">
+        <span className={`status-dot ${status}`}></span>
+        <span>{status === 'ready' ? 'API connected' : status === 'error' ? 'API unavailable' : 'Loading API data'}</span>
       </section>
 
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
+      <section className="data-grid">
+        <article className="data-card">
+          <h2>Users</h2>
+          <ul>
+            {users.map((user) => (
+              <li key={user._id}>
+                <strong>{user.displayName}</strong>
+                <span>{user.fitnessGoal}</span>
+              </li>
+            ))}
+          </ul>
+        </article>
+
+        <article className="data-card">
+          <h2>Activities</h2>
+          <ul>
+            {activities.map((activity) => (
+              <li key={activity._id}>
+                <strong>{activity.type}</strong>
+                <span>{activity.minutes} min | {activity.calories} cal</span>
+              </li>
+            ))}
+          </ul>
+        </article>
+      </section>
+    </main>
   )
 }
 
