@@ -1,83 +1,52 @@
-import { useEffect, useState } from 'react'
-import { API_BASE_URL, fetchApi } from './api.js'
+import { NavLink, Navigate, Route, Routes } from 'react-router-dom'
+import { API_BASE_URL, isCodespaceApiConfigured } from './api.js'
 import './App.css'
+import Activities from './components/Activities.jsx'
+import Leaderboard from './components/Leaderboard.jsx'
+import Teams from './components/Teams.jsx'
+import Users from './components/Users.jsx'
+import Workouts from './components/Workouts.jsx'
+
+const routes = [
+  { path: '/users', label: 'Users', element: <Users /> },
+  { path: '/teams', label: 'Teams', element: <Teams /> },
+  { path: '/activities', label: 'Activities', element: <Activities /> },
+  { path: '/leaderboard', label: 'Leaderboard', element: <Leaderboard /> },
+  { path: '/workouts', label: 'Workouts', element: <Workouts /> },
+]
 
 function App() {
-  const [users, setUsers] = useState([])
-  const [activities, setActivities] = useState([])
-  const [status, setStatus] = useState('loading')
-
-  useEffect(() => {
-    let ignore = false
-
-    async function loadDashboard() {
-      try {
-        const [usersResponse, activitiesResponse] = await Promise.all([
-          fetchApi('/api/users'),
-          fetchApi('/api/activities'),
-        ])
-
-        if (!ignore) {
-          setUsers(usersResponse)
-          setActivities(activitiesResponse)
-          setStatus('ready')
-        }
-      } catch (error) {
-        console.error(error)
-
-        if (!ignore) {
-          setStatus('error')
-        }
-      }
-    }
-
-    loadDashboard()
-
-    return () => {
-      ignore = true
-    }
-  }, [])
-
   return (
     <main className="app-shell">
-      <section className="hero-panel">
-        <p className="eyebrow">OctoFit Tracker</p>
-        <h1>Team fitness, live from the API.</h1>
-        <p className="hero-copy">
-          Connected to <code>{API_BASE_URL}</code>
-        </p>
-      </section>
+      <header className="app-header">
+        <div>
+          <p className="eyebrow">OctoFit Tracker</p>
+          <h1>Team fitness command center</h1>
+          <p className="hero-copy">
+            API base: <code>{API_BASE_URL}</code>
+          </p>
+          {!isCodespaceApiConfigured && (
+            <p className="env-warning" role="status">
+              Set <code>VITE_CODESPACE_NAME</code> to use the Codespaces API URL.
+            </p>
+          )}
+        </div>
 
-      <section className="status-strip" aria-live="polite">
-        <span className={`status-dot ${status}`}></span>
-        <span>{status === 'ready' ? 'API connected' : status === 'error' ? 'API unavailable' : 'Loading API data'}</span>
-      </section>
+        <nav className="nav-tabs" aria-label="OctoFit sections">
+          {routes.map((route) => (
+            <NavLink key={route.path} to={route.path}>
+              {route.label}
+            </NavLink>
+          ))}
+        </nav>
+      </header>
 
-      <section className="data-grid">
-        <article className="data-card">
-          <h2>Users</h2>
-          <ul>
-            {users.map((user) => (
-              <li key={user._id}>
-                <strong>{user.displayName}</strong>
-                <span>{user.fitnessGoal}</span>
-              </li>
-            ))}
-          </ul>
-        </article>
-
-        <article className="data-card">
-          <h2>Activities</h2>
-          <ul>
-            {activities.map((activity) => (
-              <li key={activity._id}>
-                <strong>{activity.type}</strong>
-                <span>{activity.minutes} min | {activity.calories} cal</span>
-              </li>
-            ))}
-          </ul>
-        </article>
-      </section>
+      <Routes>
+        <Route path="/" element={<Navigate to="/users" replace />} />
+        {routes.map((route) => (
+          <Route key={route.path} path={route.path} element={route.element} />
+        ))}
+      </Routes>
     </main>
   )
 }
