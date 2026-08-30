@@ -1,5 +1,10 @@
 import { useEffect, useState } from 'react'
-import { componentEndpoint, fetchCollection } from '../api.js'
+import { fetchCollection } from '../api.js'
+
+const codespaceName = import.meta.env.VITE_CODESPACE_NAME?.trim()
+const usersApiUrl = codespaceName
+  ? `https://${codespaceName}-8000.app.github.dev/api/users/`
+  : 'http://localhost:8000/api/users/'
 
 function Users() {
   const [users, setUsers] = useState([])
@@ -10,7 +15,7 @@ function Users() {
 
     async function loadUsers() {
       try {
-        const records = await fetchCollection('users')
+        const records = await fetchCollection(usersApiUrl, 'users')
 
         if (!ignore) {
           setUsers(records)
@@ -39,7 +44,7 @@ function Users() {
           <p className="eyebrow">Members</p>
           <h2>Users</h2>
         </div>
-        <code>{componentEndpoint('users')}</code>
+        <code>{usersApiUrl}</code>
       </div>
 
       <StatusMessage status={status} empty={!users.length} label="users" />

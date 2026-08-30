@@ -1,5 +1,10 @@
 import { useEffect, useState } from 'react'
-import { componentEndpoint, fetchCollection } from '../api.js'
+import { fetchCollection } from '../api.js'
+
+const codespaceName = import.meta.env.VITE_CODESPACE_NAME?.trim()
+const teamsApiUrl = codespaceName
+  ? `https://${codespaceName}-8000.app.github.dev/api/teams/`
+  : 'http://localhost:8000/api/teams/'
 
 function Teams() {
   const [teams, setTeams] = useState([])
@@ -10,7 +15,7 @@ function Teams() {
 
     async function loadTeams() {
       try {
-        const records = await fetchCollection('teams')
+        const records = await fetchCollection(teamsApiUrl, 'teams')
 
         if (!ignore) {
           setTeams(records)
@@ -39,7 +44,7 @@ function Teams() {
           <p className="eyebrow">Groups</p>
           <h2>Teams</h2>
         </div>
-        <code>{componentEndpoint('teams')}</code>
+        <code>{teamsApiUrl}</code>
       </div>
 
       <StatusMessage status={status} empty={!teams.length} label="teams" />

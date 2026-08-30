@@ -1,5 +1,10 @@
 import { useEffect, useState } from 'react'
-import { componentEndpoint, fetchCollection } from '../api.js'
+import { fetchCollection } from '../api.js'
+
+const codespaceName = import.meta.env.VITE_CODESPACE_NAME?.trim()
+const activitiesApiUrl = codespaceName
+  ? `https://${codespaceName}-8000.app.github.dev/api/activities/`
+  : 'http://localhost:8000/api/activities/'
 
 function Activities() {
   const [activities, setActivities] = useState([])
@@ -10,7 +15,7 @@ function Activities() {
 
     async function loadActivities() {
       try {
-        const records = await fetchCollection('activities')
+        const records = await fetchCollection(activitiesApiUrl, 'activities')
 
         if (!ignore) {
           setActivities(records)
@@ -39,7 +44,7 @@ function Activities() {
           <p className="eyebrow">Logs</p>
           <h2>Activities</h2>
         </div>
-        <code>{componentEndpoint('activities')}</code>
+        <code>{activitiesApiUrl}</code>
       </div>
 
       <StatusMessage status={status} empty={!activities.length} label="activities" />
